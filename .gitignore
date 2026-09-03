@@ -1,0 +1,19 @@
+# Ambiente Virtual
+.venv/
+env/
+venv/
+
+# Cache do Python e Pytest
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Dados brutos e processados (exceto os arquivos .gitkeep)
+data_raw/*
+!data_raw/.gitkeep
+data_processed/*
+!data_processed/.gitkeep
+
+# IDEs
+.idea/
+.vscode/
