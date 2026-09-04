@@ -10,12 +10,6 @@ def limpar_texto(coluna: pd.Series) -> pd.Series:
     """
     Higieniza uma série do Pandas removendo espaços nas extremidades, convertendo
     para caixa alta e tratando strings nulas representadas por 'NAN', 'NONE' ou vazias.
-
-    Args:
-        coluna (pd.Series): Coluna contendo dados textuais.
-
-    Returns:
-        pd.Series: Coluna higienizada com valores nulos padronizados como np.nan.
     """
     return (
         coluna.astype(str)
@@ -30,13 +24,6 @@ def processar_transformacao(
 ) -> pd.DataFrame:
     """
     Lê, limpa, padroniza e persiste a base de dados de ocorrências de celulares da SSP-SP.
-
-    Args:
-        caminho_excel (str): Caminho do arquivo .xlsx bruto gerado pelo downloader.
-        nome_aba (str | int, optional): Nome ou índice da aba a ser lida. Padrão: 0 (primeira aba).
-
-    Returns:
-        pd.DataFrame: DataFrame processado e padronizado.
     """
     logging.info(f"📖 Lendo arquivo Excel ({caminho_excel}) na aba: '{nome_aba}'...")
     df = pd.read_excel(caminho_excel, sheet_name=nome_aba)
@@ -53,13 +40,11 @@ def processar_transformacao(
     )
     df = df.loc[:, ~df.columns.duplicated()].copy()
 
-    # 2. Mapeamento extensivo de sinonímias
+    # 2. Mapeamento extensivo de sinonímias (Removido mapeamento de ANO_BO)
     colunas_renomear = {
         "NUMERO_BOLETIM": "NUM_BO",
         "NUMERO_BOLETIM_OCORRENCIA": "NUM_BO",
         "NUM_BOLETIM": "NUM_BO",
-        "ANO_BOLETIM": "ANO_BO",
-        "ANO": "ANO_BO",
         "DATA_OCORRENCIA_BO": "DATA_OCORRENCIA",
         "DATA_OCORRENCIA_BOLETIM": "DATA_OCORRENCIA",
         "HORA_OCORRENCIA_BOLETIM": "HORA_OCORRENCIA",
@@ -83,10 +68,9 @@ def processar_transformacao(
         .str.contains("METODOLOGIA|INTERPRETAÇÃO|FONTE:", case=False, na=False)
     ].copy()
 
-    # 4. Seleção projetada de colunas
+    # 4. Seleção projetada de colunas (Removidos: ANO_BO, UF, CEP)
     colunas_finais_desejadas = [
         "NUM_BO",
-        "ANO_BO",
         "DATA_OCORRENCIA",
         "HORA_OCORRENCIA",
         "DESCR_PERIODO",
@@ -97,8 +81,6 @@ def processar_transformacao(
         "LOGRADOURO",
         "BAIRRO",
         "CIDADE",
-        "UF",
-        "CEP",
         "DELEGACIA_NOME",
         "LATITUDE",
         "LONGITUDE",
@@ -106,7 +88,7 @@ def processar_transformacao(
     colunas_existentes = [c for c in colunas_finais_desejadas if c in df.columns]
     df = df[colunas_existentes].copy()
 
-    # 5. Limpeza de campos de texto
+    # 5. Limpeza de campos de texto (Removidos: UF, CEP)
     colunas_texto = [
         "RUBRICA",
         "DESCR_CONDUTA",
@@ -115,10 +97,8 @@ def processar_transformacao(
         "LOGRADOURO",
         "BAIRRO",
         "CIDADE",
-        "UF",
         "DELEGACIA_NOME",
         "MARCA_CELULAR",
-        "CEP",
     ]
     for col in colunas_texto:
         if col in df.columns:
@@ -127,11 +107,9 @@ def processar_transformacao(
     # 6. Normalização Geográfica (Latitude/Longitude)
     for col in ["LATITUDE", "LONGITUDE"]:
         if col in df.columns:
-            # Substitui vírgula por ponto e converte para numérico
             df[col] = pd.to_numeric(
                 df[col].astype(str).str.replace(",", "."), errors="coerce"
             )
-            # Define como NaN coordenadas inválidas (0.0 ou fora dos limites do Brasil)
             if col == "LATITUDE":
                 df.loc[(df[col] < -35) | (df[col] > 5) | (df[col] == 0), col] = np.nan
             elif col == "LONGITUDE":

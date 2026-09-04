@@ -2,7 +2,7 @@ import logging
 from typing import Dict, Tuple
 from django.db.models import Avg, Q
 from tqdm import tqdm
-from ocorrencias.models import EnderecoReferencia
+from ocorrencias.models import Endereco
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ def preencher_coordenadas_por_media_bairro() -> None:
     """
     logger.info("Iniciando processo de imputação de coordenadas...")
 
-    enderecos_sem_coords = EnderecoReferencia.objects.filter(
+    enderecos_sem_coords = Endereco.objects.filter(
         Q(latitude__isnull=True) | Q(longitude__isnull=True)
     )
     total_pendentes = enderecos_sem_coords.count()
@@ -39,7 +39,7 @@ def preencher_coordenadas_por_media_bairro() -> None:
 
     # 1. Agrupamento e Média por (Bairro, Cidade)
     medias_bairro = (
-        EnderecoReferencia.objects.filter(latitude__isnull=False, longitude__isnull=False)
+        Endereco.objects.filter(latitude__isnull=False, longitude__isnull=False)
         .values("bairro", "cidade")
         .annotate(lat_media=Avg("latitude"), long_media=Avg("longitude"))
     )
@@ -55,7 +55,7 @@ def preencher_coordenadas_por_media_bairro() -> None:
 
     # 2. Agrupamento e Média por Cidade (Fallback)
     medias_cidade = (
-        EnderecoReferencia.objects.filter(latitude__isnull=False, longitude__isnull=False)
+        Endereco.objects.filter(latitude__isnull=False, longitude__isnull=False)
         .values("cidade")
         .annotate(lat_media=Avg("latitude"), long_media=Avg("longitude"))
     )
@@ -93,13 +93,13 @@ def preencher_coordenadas_por_media_bairro() -> None:
             atualizados += 1
 
         if len(lote_atualizacao) >= tamanho_lote:
-            EnderecoReferencia.objects.bulk_update(
+            Endereco.objects.bulk_update(
                 lote_atualizacao, ["latitude", "longitude"], batch_size=tamanho_lote
             )
             lote_atualizacao = []
 
     if lote_atualizacao:
-        EnderecoReferencia.objects.bulk_update(
+        Endereco.objects.bulk_update(
             lote_atualizacao, ["latitude", "longitude"], batch_size=tamanho_lote
         )
 

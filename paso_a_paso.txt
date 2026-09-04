@@ -1,0 +1,48 @@
+
+
+Fase 2: Visualizações Expandidas (Chart.js)
+Objetivo: Adicionar inteligência visual ao painel com ranking de ruas e gráficos temporais.
+
+Ranking de Ruas Críticas:
+
+Criar consulta ORM no Django agregando por logradouro para retornar o Top 10 ruas com mais ocorrências.
+
+Exibir essa informação em uma tabela estilizada ou gráfico de barras.
+
+Gráficos Dinâmicos (Chart.js):
+
+Gráfico de Barras: Top marcas mais visadas conforme os filtros aplicados.
+
+Gráfico de Linhas: Evolução temporal das ocorrências (por mês ou dia da semana).
+
+Fase 3: Otimização & Performance (Django Cache & Redis)
+Objetivo: Manter a aplicação rápida e fluida mesmo aumentando o volume de dados.
+
+Estratégia de Cache:
+
+Implementar django.core.cache nas views de estatísticas pesadas e no mapa.
+
+Otimização de Query Espacial:
+
+Garantir o uso de índices nos campos de data, marca e coordenadas.
+
+Avaliar clusterização no mapa via Leaflet.markercluster para exibição de grandes volumes de pontos.
+
+Fase 4: Camada de Inteligência Artificial
+Objetivo: Agregar análises preditivas e inteligência generativa ao projeto.
+
+IA Generativa (Relatórios em Linguagem Natural via Gemini API):
+
+Criar botão "Gerar Relatório de Inteligência".
+
+Enviar as estatísticas filtradas para o modelo gerar um resumo executivo automático (ex: "Atenção: Aumento de 20% em furtos da marca X no período da Noite no bairro Y").
+
+Machine Learning Preditivo (Hotspots & Clustering):
+
+Aplicar DBSCAN / HDBSCAN via Python (scikit-learn) no pipeline de dados para identificar manchas de calor dinâmicas baseadas em densidade espacial real.
+
+Etapa,Tarefa,Status
+0. Base,"Modelos Django, Pipeline Pandas, Mapa de Calor Inicial",Concluído
+1.1,Criar interface do formulário de filtros no HTML,A Fazer
+1.2,Ajustar views.py para aceitar filtros GET,A Fazer
+1.3,Conectar JavaScript para atualizar Mapa e KPIs via fetch,A Fazer

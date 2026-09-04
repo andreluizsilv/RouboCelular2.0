@@ -1,50 +1,33 @@
 {% extends "base.html" %}
 
 {% block extra_head %}
-<!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
     #map {
-        height: 520px;
+        height: 480px;
         width: 100%;
         border-radius: 8px;
         z-index: 1;
+    }
+    .chart-container {
+        position: relative;
+        height: 320px;
+        width: 100%;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="p-4 card-custom rounded-3 shadow-lg border-start border-4 border-warning">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="display-6 fw-bold text-white mb-2">Painel de Mancha Criminal</h1>
-                    <p class="col-md-11 text-subtle mb-0">
-                        Monitoramento de roubos e furtos de celulares no estado de São Paulo. Dados extraídos da SSP-SP,
-                        tratados via pipeline Pandas e geocodificados por imputação espacial.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Cards de KPI -->
 <div class="row g-3 mb-4">
-
-    <!-- KPI 1: Total Ocorrências -->
-    <div class="col-12 col-sm-6 col-xl-3">
+    <div class="col-12 col-sm-6 col-xl-4">
         <div class="card card-custom h-100 shadow-sm border-start border-4 border-primary">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="text-uppercase text-subtle fw-bold small">Total de Registros</div>
-                        <h3 class="fw-bold my-1 text-primary">{{ total_ocorrencias }}</h3>
-                        <span class="text-success small fw-medium">
-                            <i class="bi bi-database-check me-1"></i>Base Consolidada
-                        </span>
+                        <div class="text-uppercase text-subtle fw-bold small">Total Filtrado</div>
+                        <h3 id="kpi-total" class="fw-bold my-1 text-primary">...</h3>
+                        <span class="text-success small fw-medium"><i class="bi bi-database-check me-1"></i>Ocorrências</span>
                     </div>
                     <div class="bg-primary bg-opacity-20 p-3 rounded-circle text-primary fs-3">
                         <i class="bi bi-file-earmark-bar-graph"></i>
@@ -54,17 +37,14 @@
         </div>
     </div>
 
-    <!-- KPI 2: Marca mais Visada -->
-    <div class="col-12 col-sm-6 col-xl-3">
+    <div class="col-12 col-sm-6 col-xl-4">
         <div class="card card-custom h-100 shadow-sm border-start border-4 border-danger">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="text-uppercase text-subtle fw-bold small">Marca Mais Alvo</div>
-                        <h3 class="fw-bold my-1 text-danger">{{ marca_top }}</h3>
-                        <span class="text-subtle small">
-                            {{ marca_top_qtd }} ocorrências registradas
-                        </span>
+                        <h3 id="kpi-marca" class="fw-bold my-1 text-danger">...</h3>
+                        <span id="kpi-marca-qtd" class="text-subtle small">0 ocorrências</span>
                     </div>
                     <div class="bg-danger bg-opacity-20 p-3 rounded-circle text-danger fs-3">
                         <i class="bi bi-phone"></i>
@@ -74,15 +54,14 @@
         </div>
     </div>
 
-    <!-- KPI 3: Horário Crítico -->
-    <div class="col-12 col-sm-6 col-xl-3">
+    <div class="col-12 col-sm-6 col-xl-4">
         <div class="card card-custom h-100 shadow-sm border-start border-4 border-warning">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="text-uppercase text-subtle fw-bold small">Período Crítico</div>
-                        <h3 class="fw-bold my-1 text-warning">{{ periodo_top }}</h3>
-                        <span class="text-subtle small">Maior incidência do dia</span>
+                        <div class="text-uppercase text-subtle fw-bold small">Horário de Maior Risco</div>
+                        <h3 id="kpi-horario" class="fw-bold my-1 text-warning">...</h3>
+                        <span id="kpi-horario-qtd" class="text-subtle small">0 casos registrados</span>
                     </div>
                     <div class="bg-warning bg-opacity-20 p-3 rounded-circle text-warning fs-3">
                         <i class="bi bi-clock-history"></i>
@@ -91,25 +70,6 @@
             </div>
         </div>
     </div>
-
-    <!-- KPI 4: Qualidade Geográfica -->
-    <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card card-custom h-100 shadow-sm border-start border-4 border-success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-uppercase text-subtle fw-bold small">Geocodificação</div>
-                        <h3 class="fw-bold my-1 text-success">{{ taxa_geocodificacao }}%</h3>
-                        <span class="text-subtle small">Com latitude/longitude</span>
-                    </div>
-                    <div class="bg-success bg-opacity-20 p-3 rounded-circle text-success fs-3">
-                        <i class="bi bi-geo-alt"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <!-- Container do Mapa de Calor -->
@@ -117,61 +77,66 @@
     <div class="col-12">
         <div class="card card-custom p-3 shadow-sm">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="text-white m-0">
-                    <i class="bi bi-map me-2 text-warning"></i>Mapa de Calor de Ocorrências
-                </h5>
-                <span class="badge bg-secondary text-subtle">
-                    <i class="bi bi-funnel me-1"></i>Top 5.000 Geopontos
-                </span>
+                <h5 class="text-white m-0"><i class="bi bi-map me-2 text-warning"></i>Mapa de Calor de Ocorrências</h5>
+                <span class="badge bg-secondary text-subtle">Top 5.000 Geopontos</span>
             </div>
             <div id="map"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabela: Top 10 Logradouros / Ruas Críticas -->
+<div class="row my-4">
+    <div class="col-12">
+        <div class="card card-custom p-3 shadow-sm">
+            <h5 class="text-white mb-3"><i class="bi bi-shield-exclamation me-2 text-danger"></i>Top 10 Ruas / Logradouros Críticos</h5>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Logradouro</th>
+                            <th scope="col">Bairro</th>
+                            <th scope="col">Município</th>
+                            <th scope="col" class="text-end">Ocorrências</th>
+                            <th scope="col" class="text-center">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-ruas-body">
+                        <tr>
+                            <td colspan="6" class="text-center text-subtle">Carregando dados...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-lg-6">
+        <div class="card card-custom p-3 shadow-sm h-100">
+            <h5 class="text-white mb-3"><i class="bi bi-bar-chart-fill me-2 text-warning"></i>Top Marcas Mais Visadas</h5>
+            <div class="chart-container">
+                <canvas id="chart-marcas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="card card-custom p-3 shadow-sm h-100">
+            <h5 class="text-white mb-3"><i class="bi bi-graph-up-arrow me-2 text-info"></i>Evolução Temporal das Ocorrências</h5>
+            <div class="chart-container">
+                <canvas id="chart-temporal"></canvas>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<!-- Plugin Oficial Leaflet.heat (Mais estável e performático) -->
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        console.log("🚀 Carregando mapa Leaflet...");
-
-        // 1. Inicializa o mapa em São Paulo
-        const map = L.map('map').setView([-23.55052, -46.633308], 11);
-
-        // 2. Base Dark Mode do CartoDB
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors',
-            maxZoom: 19
-        }).addTo(map);
-
-        // 3. Busca a API usando caminho absoluto estático
-        fetch('/api/mapa/')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Erro na rede: " + response.statusText);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("📍 Pontos recebidos:", data.length);
-
-                // Converte a lista do JSON para a estrutura [lat, lng, intensidade]
-                const heatPoints = data.map(p => [p.lat, p.lng, 0.6]);
-
-                // Renderiza a camada Heatmap
-                L.heatLayer(heatPoints, {
-                    radius: 15,
-                    blur: 10,
-                    maxZoom: 15,
-                    gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' }
-                }).addTo(map);
-            })
-            .catch(err => console.error("❌ Erro ao carregar dados da API do Mapa:", err));
-    });
-</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}

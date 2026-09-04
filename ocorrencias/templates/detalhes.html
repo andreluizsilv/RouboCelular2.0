@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalhes da Ocorrência #{{ ocorrencia.pk }} | RouboCelular{% endblock %}
+
+{% block extra_head %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Botão de Voltar -->
+    <a href="javascript:history.back()" class="btn btn-outline-secondary mb-3">
+        <i class="bi bi-arrow-left"></i> Voltar para a pesquisa
+    </a>
+
+    <div class="row g-4">
+        <!-- Coluna de Informações do B.O. -->
+        <div class="col-lg-5">
+            <div class="card bg-dark text-white border-secondary h-100 shadow">
+                <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Ocorrência #{{ ocorrencia.pk }}</h5>
+                    <span class="badge bg-danger">Roubo / Furto</span>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush bg-transparent">
+                        <li class="list-group-item bg-transparent text-white border-secondary">
+                            <strong><i class="bi bi-phone"></i> Aparelho:</strong><br>
+                            {{ ocorrencia.marca_celular|default:"Não informado" }} - {{ ocorrencia.modelo_celular|default:"Desconhecido" }}
+                        </li>
+                        <li class="list-group-item bg-transparent text-white border-secondary">
+                            <strong><i class="bi bi-geo-alt"></i> Local:</strong><br>
+                            {{ ocorrencia.endereco.logradouro|default:"Endereço não especificado" }}<br>
+                            <small class="text-muted">{{ ocorrencia.endereco.bairro }} - {{ ocorrencia.endereco.cidade }}</small>
+                        </li>
+                        <li class="list-group-item bg-transparent text-white border-secondary">
+                            <strong><i class="bi bi-calendar-event"></i> Data e Hora:</strong><br>
+                            {{ ocorrencia.data_ocorrencia|date:"d/m/Y" }} às {{ ocorrencia.hora_ocorrencia|default:"--:--" }}
+                        </li>
+                        {% if ocorrencia.periodo %}
+                        <li class="list-group-item bg-transparent text-white border-secondary">
+                            <strong><i class="bi bi-clock-history"></i> Período:</strong> {{ ocorrencia.periodo }}
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coluna do Mapa Individual -->
+        <div class="col-lg-7">
+            <div class="card bg-dark border-secondary h-100 shadow">
+                <div class="card-header border-secondary">
+                    <h5 class="card-title text-white mb-0"><i class="bi bi-map"></i> Localização Exata</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map-detail" style="height: 400px; width: 100%; border-bottom-left-radius: .375rem; border-bottom-right-radius: .375rem;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Coordenadas vindas do backend Django (Ajuste os nomes dos campos se necessário)
+        const lat = {{ ocorrencia.latitude|default:"-23.55052" }};
+        const lng = {{ ocorrencia.longitude|default:"-46.633308" }};
+
+        const map = L.map('map-detail').setView([lat, lng], 16);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.marker([lat, lng])
+            .addTo(map)
+            .bindPopup("<b>Local da Ocorrência #{{ ocorrencia.pk }}</b><br>{{ ocorrencia.endereco.logradouro }}")
+            .openPopup();
+    });
+</script>
+{% endblock %}

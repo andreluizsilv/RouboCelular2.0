@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Alterado de container para container-fluid com padding horizontal ajustado para aproveitar a largura total da tela -->
+<div class="container-fluid px-4 my-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-truncate me-2">
+            {% if termo_busca %}
+                Resultados para "{{ termo_busca }}"
+            {% else %}
+                Todas as Ocorrências Registradas
+            {% endif %}
+        </h2>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm text-nowrap">
+            <i class="bi bi-arrow-left"></i> Voltar para Home
+        </a>
+    </div>
+
+    <p class="text-muted">Total de registros encontrados: <strong>{{ ocorrencias.count }}</strong></p>
+
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-dark table-hover align-middle border mb-0">
+            <thead>
+                <tr class="text-nowrap">
+                    <th style="width: 15%;">Data e Hora</th>
+                    <th style="width: 15%;">Marca / Modelo</th>
+                    <th style="width: 35%;">Logradouro (Rua)</th>
+                    <th style="width: 15%;">Bairro</th>
+                    <th style="width: 12%;">Cidade</th>
+                    <th style="width: 8%;" class="text-center">Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in ocorrencias %}
+                <tr>
+                    <!-- text-nowrap impede que a data/hora quebre em 2 ou 3 linhas -->
+                    <td class="text-nowrap">
+                        {{ item.data_ocorrencia|date:"d/m/Y" }}
+                        {% if item.hora_ocorrencia %}<small class="text-muted">as {{ item.hora_ocorrencia }}</small>{% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-primary text-wrap">{{ item.marca_celular }}</span>
+                    </td>
+                    <td class="fw-bold">{{ item.endereco.logradouro|default:"Não informado" }}</td>
+                    <td>{{ item.endereco.bairro|default:"-" }}</td>
+                    <td>{{ item.endereco.cidade|default:"-" }}</td>
+                    <td class="text-center text-nowrap">
+                        <a href="{% url 'detalhes_ocorrencia' item.pk %}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-eye"></i> Ver B.O.
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">Nenhuma ocorrência encontrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

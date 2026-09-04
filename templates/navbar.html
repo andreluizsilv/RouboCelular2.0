@@ -1,0 +1,25 @@
+{% load static %}
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="{% url 'home' %}">RouboCelular</a>
+
+    <!-- Busca Global na Navbar -->
+    <form id="navbar-search-form" class="d-flex mx-auto col-12 col-md-6 my-2 my-lg-0">
+        <div class="input-group">
+            <select id="nav-search-type" class="form-select bg-dark text-white border-secondary" style="max-width: 140px;">
+                <option value="tudo">Tudo</option>
+                <option value="rua">Rua / Logradouro</option>
+                <option value="bairro">Bairro</option>
+                <option value="cidade">Cidade</option>
+                <option value="modelo">Modelo / Marca</option>
+            </select>
+            <input id="nav-search-input" class="form-control bg-dark text-white border-secondary" type="search" placeholder="Pesquisar..." aria-label="Search">
+            <button class="btn btn-warning" type="submit"><i class="bi bi-search"></i></button>
+        </div>
+    </form>
+
+
+</nav>
+
+
