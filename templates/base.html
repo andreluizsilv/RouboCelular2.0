@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br" class="h-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Análise de Roubos de Celular | SP{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- Estilos Customizados do Projeto -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="d-flex flex-column h-100">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary shadow-sm py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="#">
+                <i class="bi bi-shield-lock-fill text-warning me-2"></i>
+                SSP-SP <span class="text-warning">|</span> RouboCelular 2.0
+            </a>
+            <span class="badge bg-primary bg-opacity-20 text-primary border border-primary fs-6 fw-normal d-none d-md-inline">
+                <i class="bi bi-cpu me-1"></i>ETL & Spatial Analytics
+            </span>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <main class="container my-4 flex-shrink-0">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-dark border-top border-secondary text-center text-subtle small">
+        <div class="container">
+            Desenvolvido com <strong class="text-white">Django</strong> e <strong class="text-white">Pandas</strong> • Pipeline ETL automatizado SSP-SP
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script Customizado do Projeto -->
+    <script src="{% static 'js/main.js' %}"></script>
+
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
