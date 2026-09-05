@@ -1,62 +1,147 @@
 {% extends "base.html" %}
 
+{% block title %}Lista de Ocorrências{% endblock %}
+
 {% block content %}
-<!-- Alterado de container para container-fluid com padding horizontal ajustado para aproveitar a largura total da tela -->
-<div class="container-fluid px-4 my-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-truncate me-2">
+<div class="container my-4">
+
+  <!-- Formulário de Busca e Cabeçalho -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Resultados da Busca</h2>
+    
+    {% if termo_busca %}
+      <span class="badge bg-secondary fs-6">
+        Busca por: "<strong>{{ termo_busca }}</strong>" (Tipo: {{ tipo_busca }})
+      </span>
+    {% endif %}
+  </div>
+
+  <!-- Resumo da Paginação -->
+  <div class="mb-3 text-muted">
+    Exibindo <strong>{{ page_obj.start_index }}</strong> a <strong>{{ page_obj.end_index }}</strong> 
+    de <strong>{{ page_obj.paginator.count }}</strong> ocorrência(s) encontrada(s).
+  </div>
+
+  <!-- Tabela de Ocorrências -->
+  <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th># ID</th>
+          <th>Data/Hora</th>
+          <th>Marca / Modelo</th>
+          <th>Localidade</th>
+          {% if termo_busca %}
+            <th class="text-center">Relevância (FTS)</th>
+          {% endif %}
+          <th class="text-end">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in page_obj %}
+          <tr>
+            <td><strong>#{{ item.id }}</strong></td>
+            <td>
+              {{ item.data_ocorrencia|date:"d/m/Y" }}
+              {% if item.hora_ocorrencia %}
+                <small class="text-muted">às {{ item.hora_ocorrencia|time:"H:i" }}</small>
+              {% endif %}
+            </td>
+            <td>
+              <span class="fw-bold">{{ item.marca_celular|default:"Não informada" }}</span>
+            </td>
+            <td>
+              {% if item.endereco %}
+                {{ item.endereco.logradouro|default:"" }}, 
+                {{ item.endereco.bairro|default:"" }} - 
+                <strong>{{ item.endereco.cidade|default:"" }}</strong>
+              {% else %}
+                <span class="text-muted">Sem endereço</span>
+              {% endif %}
+            </td>
+
+            <!-- Coluna de Relevância FTS (Exibida somente se houver busca ativa) -->
             {% if termo_busca %}
-                Resultados para "{{ termo_busca }}"
-            {% else %}
-                Todas as Ocorrências Registradas
+              <td class="text-center">
+                {% if item.rank %}
+                  <!-- Converte o rank (ex: 0.0607) em porcentagem ou escala formatada -->
+                  <span class="badge bg-info text-dark" title="Pontuação exata: {{ item.rank|floatformat:4 }}">
+                    ⭐ {{ item.rank|floatformat:2 }}
+                  </span>
+                {% else %}
+                  <span class="badge bg-light text-muted">N/A</span>
+                {% endif %}
+              </td>
             {% endif %}
-        </h2>
-        <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm text-nowrap">
-            <i class="bi bi-arrow-left"></i> Voltar para Home
-        </a>
-    </div>
 
-    <p class="text-muted">Total de registros encontrados: <strong>{{ ocorrencias.count }}</strong></p>
+            <td class="text-end">
+              <a href="{% url 'detalhe_ocorrencia' item.pk %}" class="btn btn-sm btn-outline-primary">
+                Ver Detalhes
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="{% if termo_busca %}6{% else %}5{% endif %}" class="text-center py-4">
+              <p class="text-muted mb-0">Nenhuma ocorrência encontrada com os filtros informados.</p>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-    <div class="table-responsive shadow-sm rounded">
-        <table class="table table-dark table-hover align-middle border mb-0">
-            <thead>
-                <tr class="text-nowrap">
-                    <th style="width: 15%;">Data e Hora</th>
-                    <th style="width: 15%;">Marca / Modelo</th>
-                    <th style="width: 35%;">Logradouro (Rua)</th>
-                    <th style="width: 15%;">Bairro</th>
-                    <th style="width: 12%;">Cidade</th>
-                    <th style="width: 8%;" class="text-center">Ação</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in ocorrencias %}
-                <tr>
-                    <!-- text-nowrap impede que a data/hora quebre em 2 ou 3 linhas -->
-                    <td class="text-nowrap">
-                        {{ item.data_ocorrencia|date:"d/m/Y" }}
-                        {% if item.hora_ocorrencia %}<small class="text-muted">as {{ item.hora_ocorrencia }}</small>{% endif %}
-                    </td>
-                    <td>
-                        <span class="badge bg-primary text-wrap">{{ item.marca_celular }}</span>
-                    </td>
-                    <td class="fw-bold">{{ item.endereco.logradouro|default:"Não informado" }}</td>
-                    <td>{{ item.endereco.bairro|default:"-" }}</td>
-                    <td>{{ item.endereco.cidade|default:"-" }}</td>
-                    <td class="text-center text-nowrap">
-                        <a href="{% url 'detalhes_ocorrencia' item.pk %}" class="btn btn-sm btn-warning">
-                            <i class="bi bi-eye"></i> Ver B.O.
-                        </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center text-muted py-4">Nenhuma ocorrência encontrada.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+  <!-- Controles de Paginação Preservando os Querystring Parameters -->
+  {% if page_obj.has_other_pages %}
+    <nav aria-label="Navegação da lista de ocorrências" class="mt-4">
+      <ul class="pagination justify-content-center">
+
+        <!-- Botão: Primeira Página -->
+        {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page=1{% if query_params %}&{{ query_params }}{% endif %}" aria-label="Primeira">
+              &laquo;&laquo; Primeira
+            </a>
+          </li>
+          <!-- Botão: Anterior -->
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query_params %}&{{ query_params }}{% endif %}" aria-label="Anterior">
+              &laquo; Anterior
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">&laquo;&laquo; Primeira</span></li>
+          <li class="page-item disabled"><span class="page-link">&laquo; Anterior</span></li>
+        {% endif %}
+
+        <!-- Indicador da Página Atual -->
+        <li class="page-item active">
+          <span class="page-link">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+          </span>
+        </li>
+
+        <!-- Botão: Próxima -->
+        {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query_params %}&{{ query_params }}{% endif %}" aria-label="Próxima">
+              Próxima &raquo;
+            </a>
+          </li>
+          <!-- Botão: Última -->
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query_params %}&{{ query_params }}{% endif %}" aria-label="Última">
+              Última &raquo;&raquo;
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Próxima &raquo;</span></li>
+          <li class="page-item disabled"><span class="page-link">Última &raquo;&raquo;</span></li>
+        {% endif %}
+
+      </ul>
+    </nav>
+  {% endif %}
+
 </div>
 {% endblock %}

@@ -12,7 +12,7 @@ from .views import (
 urlpatterns = [
     path("", home_view, name="home"),
     path("ocorrencias/", lista_ocorrencias, name="lista_ocorrencias"),
-    path("ocorrencia/<int:pk>/", detalhe_ocorrencia_view, name="detalhes_ocorrencia"),
+    path("ocorrencia/<int:pk>/", detalhe_ocorrencia_view, name="detalhe_ocorrencia"),  # <--- Removido o 's' final
 
     # API Endpoints
     path("api/mapa/", api_ocorrencias_mapa, name="api_mapa"),
